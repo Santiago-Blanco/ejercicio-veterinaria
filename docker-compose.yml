@@ -3,29 +3,38 @@ version: '3.8'
 services:
   app_vet:
     build:
-      context: .
+      context: /Ejercicio-Veterinaria/.
       target: app
     ports:
       - "8080:8080"
     environment:
-      - DB_URL=jdbc:mysql://ejercicio-vet:3306/clinica_veterinaria?createDatabaseIfNotExist=true&serverTimezone=UTC
-      - DB_USER_NAME=root
-      - DB_PASSWORD=1234
+      DB_URL: jdbc:mysql://vet_db:3306/clinica_veterinaria?createDatabaseIfNotExist=true&serverTimezone=UTC
+      DB_USER_NAME: root
+      DB_PASSWORD: admin
     restart: always
     depends_on:
-      ejercicio-vet:
-        condition: service_healthy  # Se mueve dentro de `ejercicio-vet`
+      vet_db:
+        condition: service_healthy
+    networks:
+      - vet-net
 
-  ejercicio-vet:
-    image: mysql:8.0.33
+  vet_db:
+    image: mysql:latest
     ports:
-      - "3307:3306"
+      - "3306:3306"
     environment:
-      - MYSQL_ROOT_PASSWORD=1234
-      - MYSQL_PASSWORD=1234
-      - MYSQL_DATABASE=clinica_veterinaria
+      MYSQL_ROOT_PASSWORD: admin
+      MYSQL_DATABASE: clinica_veterinaria
+      MYSQL_ROOT_HOST: '%'
     restart: always
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-padmin"]
+      interval: 5s
       timeout: 10s
       retries: 10
+    networks:
+      - vet-net
+
+networks:
+  vet-net:
+    driver: bridge
